@@ -14,6 +14,11 @@
 #include "qstylehelper_p.h"
 #include "qstyleoption.h"
 
+#ifdef Q_OS_WIN
+#include <dwmapi.h>
+#pragma comment(lib, "dwmapi.lib")
+#endif
+
 static constexpr int topLevelRoundingRadius = 8;  // Radius for toplevel items like popups for round corners
 static constexpr int secondLevelRoundingRadius =
     4;                                            // Radius for second level items like hovered menu item round corners
@@ -58,6 +63,27 @@ enum
 #define ChromeClose      QStringLiteral( "\uE8BB" )
 
 #define Help             QStringLiteral( "\uE897" )
+
+QIcon makeFluentIcon(const QChar &ch)
+{
+    QFont f("Segoe Fluent Icons");
+    f.setPointSize(11);
+
+    QPixmap pix(20, 20);
+    pix.fill(Qt::transparent);
+
+    QPainter p(&pix);
+    p.setRenderHints(QPainter::Antialiasing |
+                     QPainter::TextAntialiasing |
+                     QPainter::SmoothPixmapTransform);
+
+    p.setFont(f);
+    p.setPen(QColor("#202020"));
+    p.drawText(pix.rect(), Qt::AlignCenter, ch);
+
+    return QIcon(pix);
+}
+
 
 template <typename R, typename P, typename B>
 static inline void drawRoundedRect( QPainter* p, R&& rect, P&& pen, B&& brush )
@@ -907,6 +933,7 @@ static bool updateBrushOrigin_public( QPainter* painter, const QWidget* widget, 
 
 #include <QApplication>
 #include <QBitmap>
+#include <QDockWidget>
 #include <QSettings>
 #include <QSpinBox>
 #include <QStyleHints>
@@ -973,6 +1000,7 @@ inline bool isHighContrastTheme()
 CusProxyStyle::CusProxyStyle( QStyle* style )
     : QProxyStyle( style )
 {
+    QFontDatabase::addApplicationFont(":/resource/Segoe Fluent Icons.ttf");
     assetFont = QFont( QStringLiteral( "Segoe Fluent Icons" ) );
     assetFont.setStyleStrategy( QFont::NoFontMerging );
 
@@ -1342,19 +1370,16 @@ void CusProxyStyle::drawComplexControl( ComplexControl control,
                 QStyleOption opt( *option );
                 opt.state.setFlag( QStyle::State_On, false );
 
-                // 1️⃣ 画背景（用原始 rect）
                 painter->setPen( Qt::NoPen );
                 painter->setBrush( controlFillBrush( &opt, ControlType::Control ) );
                 painter->drawRoundedRect( rect, 6, 6 );
 
-                // 2️⃣ 画边框（半像素 inward，保证清晰）
                 if ( combobox->frame )
                 {
                     QRectF borderRect = rect.adjusted( 0.5, 0.5, -0.5, -0.5 );
                     drawLineEditFrame( painter, borderRect, combobox, combobox->editable );
                 }
 
-                // 3️⃣ 箭头
                 if ( sub & SC_ComboBoxArrow )
                 {
                     QRectF arrowRect = proxy()
@@ -1366,7 +1391,6 @@ void CusProxyStyle::drawComplexControl( ComplexControl control,
                     painter->drawText( arrowRect, Qt::AlignCenter, ChevronDownMed );
                 }
 
-                // 4️⃣ 焦点框（不要 shrink）
                 if ( state & State_KeyboardFocusChange && hasFocus )
                 {
                     QStyleOptionFocusRect fropt;
@@ -1930,15 +1954,15 @@ void CusProxyStyle::drawPrimitive( PrimitiveElement element,
             }
             break;
         }
+#if 1
         case PE_Frame :
         {
             if ( const auto* frame = qstyleoption_cast<const QStyleOptionFrame*>( option ) )
             {
-                QRectF rect = option->rect;  // ❗ 不再 shrink
+                QRectF rect = option->rect;
 
                 const bool isComboPopup = widget && widget->inherits( "QComboBoxPrivateContainer" );
 
-                // 1️⃣ 背景
                 painter->setPen( Qt::NoPen );
 
                 if ( isComboPopup )
@@ -1958,49 +1982,49 @@ void CusProxyStyle::drawPrimitive( PrimitiveElement element,
                     break;
                 }
 
-                // 2️⃣ 边框（半像素 inward）
                 QRectF borderRect = rect.adjusted( 0.5, 0.5, -0.5, -0.5 );
-
                 drawLineEditFrame( painter, borderRect, option, qobject_cast<const QTextEdit*>( widget ) != nullptr );
             }
             break;
         }
-        // case PE_Frame :
-        // {
-        //     if ( const auto* frame = qstyleoption_cast<const QStyleOptionFrame*>( option ) )
-        //     {
-        //         const auto rect = QRectF( option->rect ).marginsRemoved( QMarginsF( 1.5, 1.5, 1.5, 1.5 ) );
+#else
+        case PE_Frame :
+        {
+            if ( const auto* frame = qstyleoption_cast<const QStyleOptionFrame*>( option ) )
+            {
+                const auto rect = QRectF( option->rect ).marginsRemoved( QMarginsF( 1.5, 1.5, 1.5, 1.5 ) );
 
-        //         const bool isComboPopup = widget && widget->inherits( "QComboBoxPrivateContainer" );
-        //         if ( isComboPopup )
-        //         {
-        //             QPen pen;
-        //             if ( highContrastTheme )
-        //             {
-        //                 pen = QPen( option->palette.windowText().color(), 2 );
-        //             }
-        //             else
-        //             {
-        //                 pen = Qt::NoPen;
-        //             }
+                const bool isComboPopup = widget && widget->inherits( "QComboBoxPrivateContainer" );
+                if ( isComboPopup )
+                {
+                    QPen pen;
+                    if ( highContrastTheme )
+                    {
+                        pen = QPen( option->palette.windowText().color(), 2 );
+                    }
+                    else
+                    {
+                        pen = Qt::NoPen;
+                    }
 
-        //             QColor c = WINUI3Colors[ colorSchemeIndex ][ menuPanelFill ];
-        //             drawRoundedRect( painter, rect, pen, c );
-        //         }
-        //         else
-        //         {
-        //             drawRoundedRect( painter, rect, Qt::NoPen, option->palette.brush( QPalette::Base ) );
-        //         }
+                    QColor c = WINUI3Colors[ colorSchemeIndex ][ menuPanelFill ];
+                    drawRoundedRect( painter, rect, pen, c );
+                }
+                else
+                {
+                    drawRoundedRect( painter, rect, Qt::NoPen, option->palette.brush( QPalette::Base ) );
+                }
 
-        //         if ( frame->frameShape == QFrame::NoFrame )
-        //         {
-        //             break;
-        //         }
+                if ( frame->frameShape == QFrame::NoFrame )
+                {
+                    break;
+                }
 
-        //         drawLineEditFrame( painter, rect, option, qobject_cast<const QTextEdit*>( widget ) != nullptr );
-        //     }
-        //     break;
-        // }
+                drawLineEditFrame( painter, rect, option, qobject_cast<const QTextEdit*>( widget ) != nullptr );
+            }
+            break;
+        }
+#endif
         case PE_PanelItemViewItem :
             if ( const QStyleOptionViewItem* vopt = qstyleoption_cast<const QStyleOptionViewItem*>( option ) )
             {
@@ -2113,12 +2137,30 @@ void CusProxyStyle::drawPrimitive( PrimitiveElement element,
             break;
         case QStyle::PE_Widget :
         {
+            if (widget->property("fluentBorder").toBool())
+            {
+                painter->save();
+                painter->setRenderHint(QPainter::Antialiasing);
+
+                QRect r = option->rect.adjusted(1,1,-1,-1);
+
+                // Fluent 灰色边框
+                QColor borderColor(208,208,208);   // #D0D0D0
+
+                QPen pen(borderColor);
+                pen.setWidth(1);
+                painter->setPen(pen);
+
+                painter->setBrush(Qt::NoBrush);
+                painter->drawRoundedRect(r, 4, 4);
+
+                painter->restore();
+                return;
+            }
+
             if ( widget && widget->palette().isBrushSet( QPalette::Active, widget->backgroundRole() ) )
             {
                 const QBrush bg = widget->palette().brush( widget->backgroundRole() );
-                // auto wp = QWidgetPrivate::get(widget);
-                // PainterStateGuard psg(painter);
-                // wp->updateBrushOrigin(painter, bg);
                 updateBrushOrigin_public( painter, widget, bg );
                 painter->fillRect( option->rect, bg );
             }
@@ -3499,6 +3541,73 @@ void CusProxyStyle::drawControl( ControlElement element,
             }
             break;
         }
+        case CE_DockWidgetTitle:
+            if (const QStyleOptionDockWidget *dwOpt = qstyleoption_cast<const QStyleOptionDockWidget *>(option)) {
+                const QDockWidget *dockWidget = qobject_cast<const QDockWidget *>(widget);
+                QRect rect = option->rect;
+                if (dockWidget && dockWidget->isFloating()) {
+                    // QWindowsXPStyle::drawControl(element, option, painter, widget);
+                    break; //otherwise fall through
+                }
+
+                const bool verticalTitleBar = dwOpt->verticalTitleBar;
+
+                if (verticalTitleBar) {
+                    rect = rect.transposed();
+
+                    painter->translate(rect.left() - 1, rect.top() + rect.width());
+                    painter->rotate(-90);
+                    painter->translate(-rect.left() + 1, -rect.top());
+                }
+
+                //后续统一
+                painter->setBrush(QColor(0xF9F9F9));
+                painter->setPen(QColor(0xE5E5E5));
+                painter->drawRect(rect.adjusted(0, 1, -1, -3));
+
+                int buttonMargin = 4;
+                int mw = proxy()->pixelMetric(QStyle::PM_DockWidgetTitleMargin, dwOpt, widget);
+                int fw = proxy()->pixelMetric(PM_DockWidgetFrameWidth, dwOpt, widget);
+                const QDockWidget *dw = qobject_cast<const QDockWidget *>(widget);
+                bool isFloating = dw && dw->isFloating();
+
+                QRect r = option->rect.adjusted(0, 2, -1, -3);
+                QRect titleRect = r;
+
+                if (dwOpt->closable) {
+                    QSize sz = proxy()->standardIcon(QStyle::SP_TitleBarCloseButton, dwOpt, widget).actualSize(QSize(10, 10));
+                    titleRect.adjust(0, 0, -sz.width() - mw - buttonMargin, 0);
+                }
+
+                if (dwOpt->floatable) {
+                    QSize sz = proxy()->standardIcon(QStyle::SP_TitleBarMaxButton, dwOpt, widget).actualSize(QSize(10, 10));
+                    titleRect.adjust(0, 0, -sz.width() - mw - buttonMargin, 0);
+                }
+
+                if (isFloating) {
+                    titleRect.adjust(0, -fw, 0, 0);
+                    if (widget && widget->windowIcon().cacheKey() != QApplication::windowIcon().cacheKey())
+                        titleRect.adjust(titleRect.height() + mw, 0, 0, 0);
+                } else {
+                    titleRect.adjust(mw, 0, 0, 0);
+                    if (!dwOpt->floatable && !dwOpt->closable)
+                        titleRect.adjust(0, 0, -mw, 0);
+                }
+                if (!verticalTitleBar)
+                    titleRect = visualRect(dwOpt->direction, r, titleRect);
+
+                if (!dwOpt->title.isEmpty()) {
+                    QString titleText = painter->fontMetrics().elidedText(dwOpt->title, Qt::ElideRight,
+                                                                          verticalTitleBar ? titleRect.height() : titleRect.width());
+                    const int indent = 4;
+                    drawItemText(painter, rect.adjusted(indent + 1, 1, -indent - 1, -1),
+                                 Qt::AlignLeft | Qt::AlignVCenter | Qt::TextShowMnemonic,
+                                 dwOpt->palette,
+                                 dwOpt->state & State_Enabled, titleText,
+                                 QPalette::WindowText);
+                }
+            }
+            break;
         default :
             QProxyStyle::drawControl( element, option, painter, widget );
             break;
@@ -3602,32 +3711,12 @@ void CusProxyStyle::polish( QWidget* widget )
 
         widget->setAttribute( Qt::WA_TranslucentBackground );
         widget->setWindowFlag( Qt::FramelessWindowHint );
+        widget->setWindowFlag( Qt::Popup );
 
         widget->setWindowFlag( Qt::NoDropShadowWindowHint );
 
         widget->setAttribute( Qt::WA_RightToLeft, layoutDirection );
         widget->setAttribute( Qt::WA_WState_Created, wasCreated );
-
-        bool inGraphicsView = widget->graphicsProxyWidget() != nullptr;
-        if ( !inGraphicsView )
-        {
-            // auto* shadow = new QGraphicsDropShadowEffect( widget );
-
-            // // Fluent UI 3 Popup Elevation
-            // shadow->setBlurRadius( 8 );              // 较小的模糊
-            // shadow->setOffset( 0, 4 );               // 较小的偏移
-            // shadow->setColor( QColor( 0, 0, 0, 30 ) ); // 更透明
-
-            // widget->setGraphicsEffect( shadow );
-
-            // Bug: 选择一个Action后，在点击菜单，菜单看不见，只有鼠标移到item，才会慢慢显示
-            //  QGraphicsDropShadowEffect *dropshadow = new QGraphicsDropShadowEffect(widget);
-            //  dropshadow->setBlurRadius(3);
-            //  dropshadow->setXOffset(2);
-            //  dropshadow->setYOffset(2);
-            //  dropshadow->setColor( QColor( 0, 0, 0, 10 ) ); // 更透明
-            //  widget->setGraphicsEffect(dropshadow);
-        }
     }
     else if ( QComboBox* cb = qobject_cast<QComboBox*>( widget ) )
     {
@@ -3829,6 +3918,12 @@ QSize CusProxyStyle::sizeFromContents( ContentsType type,
             contentSize.rwidth() += 2 * contentHMargin - oldMargin;
             break;
         }
+        //or ui setHeight
+        // case CT_ToolButton:
+        // {
+        //     contentSize.height() < 31 ? contentSize.setHeight( 31 ) : void();
+        //     break;
+        // }
         case CT_ItemViewItem :
         {
             // FluentUI 3 列表项标准常量
@@ -3855,26 +3950,6 @@ QSize CusProxyStyle::sizeFromContents( ContentsType type,
                     contentSize.setHeight( FLUENT_ITEM_HEIGHT );
                 }
             }
-
-            // if ( const auto* viewItemOpt = qstyleoption_cast<const QStyleOptionViewItem*>( option ) )
-            // {
-            //     if ( const QListView* lv = qobject_cast<const QListView*>( widget );
-            //          lv && lv->viewMode() != QListView::IconMode )
-            //     {
-            //         QStyleOptionViewItem vOpt( *viewItemOpt );
-            //         // viewItemSize only takes PM_FocusFrameHMargin into account
-            //         // but no additional margin, therefore adjust it here for a
-            //         // correct width during layouting when WrapText is enabled
-            //         vOpt.rect.setRight( vOpt.rect.right() - contentHMargin );
-            //         contentSize = QProxyStyle::sizeFromContents( type, &vOpt, size, widget );
-            //         contentSize.rwidth() += contentHMargin;
-            //         contentSize.rheight() += 2 * contentHMargin;
-            //     }
-            //     else
-            //     {
-            //         contentSize = QProxyStyle::sizeFromContents( type, option, size, widget );
-            //     }
-            // }
             break;
         }
         default :
@@ -4106,6 +4181,13 @@ void CusProxyStyle::unpolish( QWidget* widget )
         vp->setAttribute( Qt::WA_StyledBackground, origStyledBackground );
         vp->setProperty( "_q_original_styled_background", QVariant() );
     }
+}
+
+QIcon CusProxyStyle::standardIcon(StandardPixmap sp, const QStyleOption *option, const QWidget *widget) const
+{
+    // if (sp == SP_TitleBarCloseButton) { return makeFluentIcon(QChar(0xE8BB)); }
+
+    return QProxyStyle::standardIcon(sp, option, widget);
 }
 
 void CusProxyStyle::drawCheckBox( const QStyleOption* option, QPainter* painter, const QWidget* widget ) const

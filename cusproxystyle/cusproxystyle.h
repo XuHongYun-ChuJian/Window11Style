@@ -96,6 +96,10 @@ public:
     void polish(QPalette &result) override;
     void unpolish(QWidget *widget) override;
 
+    QIcon standardIcon(StandardPixmap sp,
+                       const QStyleOption *option,
+                       const QWidget *widget) const override;
+
 private:
     void drawCheckBox( const QStyleOption* option, QPainter* painter, const QWidget* widget ) const;
 
