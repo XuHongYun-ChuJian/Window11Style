@@ -5,7 +5,6 @@
 #include <QStyleHints>
 #include <QAbstractItemView>
 
-#include "cusproxystyle.h"
 #include "ui_mainwindow.h"
 
 MainWindow::MainWindow( QWidget* parent )

@@ -141,6 +141,12 @@
            </item>
            <item row="0" column="6">
             <widget class="QCommandLinkButton" name="commandLinkButton">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>31</height>
+              </size>
+             </property>
              <property name="text">
               <string>CommandLinkButton</string>
              </property>
@@ -865,7 +871,7 @@
      <x>0</x>
      <y>0</y>
      <width>1195</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>

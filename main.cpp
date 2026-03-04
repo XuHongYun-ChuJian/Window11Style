@@ -2,8 +2,8 @@
 #include <QFont>
 #include <QMenu>
 #include <QTextEdit>
-#include "MainWindow.h"
-#include "CusProxyStyle.h"
+#include "mainwindow.h"
+#include "fluentui3style.h"
 #include "qboxlayout.h"
 #include "qcombobox.h"
 #include "qdebug.h"
@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     qApp->setFont(font);
 
     // 设置自定义 Win11 样式
-    qApp->setStyle(new CusProxyStyle());
+    qApp->setStyle(new FluentUI3Style());
     // a.setStyle("windows11");
 
     // 创建并显示主窗口

@@ -20,8 +20,8 @@ HEADERS += \
 FORMS += \
     mainwindow.ui
 
-INCLUDEPATH += $$PWD/cusproxystyle
-include($$PWD/cusproxystyle/cusproxystyle.pri)
+INCLUDEPATH += $$PWD/fluentui3style
+include($$PWD/fluentui3style/fluentui3style.pri)
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

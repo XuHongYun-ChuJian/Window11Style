@@ -1,14 +1,14 @@
 QT += svg
 
 HEADERS += \
-    $$PWD/cusproxystyle.h \
+    $$PWD/fluentui3style.h \
     $$PWD/customcontrol/dockwidgettitlebar.h \
     $$PWD/qhexstring_p.h \
     $$PWD/qstyleanimation_p.h \
     $$PWD/qstylehelper_p.h
 
 SOURCES += \
-    $$PWD/cusproxystyle.cpp \
+    $$PWD/fluentui3style.cpp \
     $$PWD/customcontrol/dockwidgettitlebar.cpp \
     $$PWD/qstyleanimation.cpp \
     $$PWD/qstylehelper.cpp

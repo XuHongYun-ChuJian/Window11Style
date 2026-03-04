@@ -1,5 +1,5 @@
-#ifndef CUSPROXYSTYLE_H
-#define CUSPROXYSTYLE_H
+#ifndef FLUENTUI3STYLE_H
+#define FLUENTUI3STYLE_H
 
 #include <QPainter>
 #include <QPainterPath>
@@ -51,12 +51,12 @@ enum class ControlType
     ControlAlt
 };
 
-class CusProxyStyle : public QProxyStyle
+class FluentUI3Style : public QProxyStyle
 {
     Q_OBJECT
 
 public:
-    CusProxyStyle( QStyle* style = nullptr );
+    FluentUI3Style( QStyle* style = nullptr );
 
     // QStyle interface
 
@@ -120,4 +120,4 @@ private:
     int colorSchemeIndex = 0;
 };
 
-#endif  // CUSPROXYSTYLE_H
+#endif  // FLUENTUI3STYLE_H
