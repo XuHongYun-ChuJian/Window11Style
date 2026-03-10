@@ -1,6 +1,7 @@
-
 # FluentUI3Style：基于Qt的FluentUI3风格实现
+
 ## 预览
+
 <img width="1588" height="1102" alt="QQ20260306-155735" src="https://github.com/user-attachments/assets/5a13858e-26fd-4bdc-8d69-7138bc022a5b" />
 <img width="1588" height="1102" alt="QQ20260306-155809" src="https://github.com/user-attachments/assets/6f97ea1e-d19d-4580-96f4-d37b879bcab3" />
 
@@ -13,7 +14,7 @@ QApplication app(argc, argv);
 app.setStyle(new FluentUI3Style);
 ```
 
-[git地址](https://github.com/XHY-ChuJian/Window11Style.git)
+[git地址](https://github.com/XHY-ChuJian/FluentUIStyle.git)
 
 ## 核心特性
 
@@ -80,7 +81,6 @@ FluentUI3Style/
    ```cpp
    #include "FluentUI3Style.h"
    ```
-
 2. 创建样式实例并应用到应用程序：
    ```cpp
    QApplication app(argc, argv);
@@ -88,6 +88,7 @@ FluentUI3Style/
    ```
 
 ## 示例效果
+
 <img width="1538" height="975" alt="screenshot-20260304-101705" src="https://github.com/user-attachments/assets/2cdc3f2d-d1a2-4c1b-87f3-156bfe3fe0ca" />
 <img width="1538" height="975" alt="screenshot-20260304-103936" src="https://github.com/user-attachments/assets/fd89ce3d-9188-476e-a860-d02019489ca7" />
 <img width="1538" height="975" alt="screenshot-20260304-103943" src="https://github.com/user-attachments/assets/eba2706f-e1f2-4921-b2f0-b498b4930bc8" />
