@@ -110,11 +110,13 @@ private:
 
     QBrush controlFillBrush( const QStyleOption* option, ControlType controlType ) const;
 
-    QColor controlTextColor( const QStyleOption* option,
+    QColor controlTextColor(const QStyleOption* option,
                             QPalette::ColorRole role = QPalette::ButtonText ) const;
 
     void drawLineEditFrame(QPainter *p, const QRectF &rect, const QStyleOption *o, bool isEditable = true) const;
     inline QColor winUI3Color(enum WINUI3Color col) const;
+
+    QIcon makeFluentIcon( const QChar& ch ) const;
 
 private:
     mutable QFont assetFont;

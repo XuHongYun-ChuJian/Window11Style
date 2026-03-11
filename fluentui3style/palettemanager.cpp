@@ -40,6 +40,7 @@ void PaletteManager::applyLight(QPalette& p) const
 
 #if QT_VERSION >= QT_VERSION_CHECK(6,6,0)
     p.setColor(QPalette::Active, QPalette::Accent, QColor(0,90,158,255));
+#else
 #endif
 
     // Disabled

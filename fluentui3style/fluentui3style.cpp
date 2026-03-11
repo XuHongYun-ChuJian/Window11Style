@@ -1,18 +1,18 @@
 #include "fluentui3style.h"
 
+#include <QApplication>
+#include <QBitmap>
+#include <QDockWidget>
 #include <QFontMetrics>
 #include <QIcon>
 #include <QObject>
 #include <QScrollBar>
-#include <QString>
-#include <QTextLayout>
-#include <QApplication>
-#include <QBitmap>
-#include <QDockWidget>
 #include <QSettings>
 #include <QSpinBox>
+#include <QString>
 #include <QStyleHints>
 #include <QSysInfo>
+#include <QTextLayout>
 #include <QToolButton>
 #include <QTreeView>
 
@@ -26,7 +26,7 @@
 #include "qstyleoption.h"
 
 #if QT_VERSION <= QT_VERSION_CHECK( 6, 8, 0 )
-#include "palettemanager.h"
+#    include "palettemanager.h"
 #endif
 
 static constexpr int topLevelRoundingRadius = 8;  // Radius for toplevel items like popups for round corners
@@ -73,24 +73,6 @@ enum
 #define ChromeClose      QStringLiteral( "\uE8BB" )
 
 #define Help             QStringLiteral( "\uE897" )
-
-QIcon makeFluentIcon( const QChar& ch )
-{
-    QFont f( "Segoe Fluent Icons" );
-    f.setPointSize( 11 );
-
-    QPixmap pix( 20, 20 );
-    pix.fill( Qt::transparent );
-
-    QPainter p( &pix );
-    p.setRenderHints( QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform );
-
-    p.setFont( f );
-    p.setPen( QColor( 0x202020 ) );
-    p.drawText( pix.rect(), Qt::AlignCenter, ch );
-
-    return QIcon( pix );
-}
 
 template <typename R, typename P, typename B>
 static inline void drawRoundedRect( QPainter* p, R&& rect, P&& pen, B&& brush )
@@ -152,7 +134,7 @@ static std::array<QColor, 34> WINUI3ColorsDark {
     QColor( 0xFF, 0xFF, 0xFF, 0x18 ),                     // controlStrokeSecondary
     QColor( 0xFF, 0xFF, 0xFF, 0x12 ),                     // controlStrokePrimary
     // QColor( 0x0F, 0x0F, 0x0F, 0xFF ),                     // menuPanelFill
-    QColor( 45, 45, 45 ),                     // menuPanelFill
+    QColor( 45, 45, 45 ),                                 // menuPanelFill
     QColor( 0xFF, 0xFF, 0xFF, 0x14 ),                     // controlStrokeOnAccentSecondary
     QColor( 0x45, 0x45, 0x45, 0xFF ),                     // controlFillSolid
     QColor( 0x75, 0x75, 0x75, 0x66 ),                     // surfaceStroke
@@ -191,8 +173,8 @@ static std::array<std::array<QColor, 34>, 2> WINUI3Colors { WINUI3ColorsLight, W
 
 static qreal radioButtonInnerRadius( int state, const QStyleOption* option, const QWidget* widget, int indicatorSize )
 {
-    Q_UNUSED(widget)
-    Q_UNUSED(option)
+    Q_UNUSED( widget )
+    Q_UNUSED( option )
 
     qreal outerRadius = indicatorSize / 2.0;
 
@@ -346,7 +328,7 @@ QString calculateElidedText( const QString& text,
                              bool lastVisibleLineShouldBeElided,
                              QPointF* paintStartPosition )
 {
-    Q_UNUSED(flags)
+    Q_UNUSED( flags )
 
     QTextLayout textLayout( text, font );
     textLayout.setTextOption( textOption );
@@ -957,25 +939,25 @@ inline int getColorSchemeIndex()  // 0 = Light, 1 = Dark
     Qt::ColorScheme scheme = qApp->styleHints()->colorScheme();
     return scheme == Qt::ColorScheme::Light ? 0 : 1;
 #else
-#if 1
+#    if 1
     return (int)fluentUIAppearance.theme();
-#else // 直接读取系统设置，兼容性更好，可随系统变化
-#ifdef Q_OS_WIN
+#    else  // 直接读取系统设置，兼容性更好，可随系统变化
+#        ifdef Q_OS_WIN
     if ( !isWin11() )
     {
         return 0;  // 默认 Light
     }
 
     QSettings settings( "HKEY_CURRENT_"
-                       "USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Th"
-                       "emes\\Personalize",
-                       QSettings::NativeFormat );
+                        "USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Th"
+                        "emes\\Personalize",
+                        QSettings::NativeFormat );
     int value = settings.value( "AppsUseLightTheme", 1 ).toInt();
     return value == 1 ? 0 : 1;  // 0=Light,1=Dark
-#else
+#        else
     return 0;  // 其他系统默认 Light
-#endif
-#endif
+#        endif
+#    endif
 #endif
 }
 
@@ -997,7 +979,7 @@ FluentUI3Style::FluentUI3Style( QStyle* style )
     assetFont.setStyleStrategy( QFont::NoFontMerging );
 
 #if QT_VERSION >= QT_VERSION_CHECK( 6, 5, 0 )
-    qDebug()<< "Current colorscheme:" << qApp->styleHints()->colorScheme();
+    qDebug() << "Current colorscheme:" << qApp->styleHints()->colorScheme();
 #endif
 
     highContrastTheme = isHighContrastTheme();
@@ -1135,12 +1117,10 @@ void FluentUI3Style::drawComplexControl( ComplexControl control,
                                    sb->rect.size() );
                 if ( cp.needsPainting() )
                 {
-                    [[maybe_unused]]  const auto frameRect = QRectF( option->rect ).marginsRemoved( QMarginsF( 1.5, 1.5, 1.5, 1.5 ) );
-                    // drawRoundedRect( cp.painter(), frameRect, Qt::NoPen, option->palette.brush( QPalette::Base ) );
-
+                    [[maybe_unused]] const auto frameRect =
+                        QRectF( option->rect ).marginsRemoved( QMarginsF( 1.5, 1.5, 1.5, 1.5 ) );
                     if ( sb->frame && ( sub & SC_SpinBoxFrame ) )
                     {
-                        // drawLineEditFrame( cp.painter(), frameRect, option );
                         QStyleOptionFrame panel;
                         panel.QStyleOption::operator=( *option );
                         panel.rect         = option->rect;
@@ -1154,7 +1134,7 @@ void FluentUI3Style::drawComplexControl( ComplexControl control,
                     const bool hasFocus    = state & State_HasFocus;
                     if ( isMouseOver && !hasFocus && !highContrastTheme )
                     {
-                        // drawRoundedRect( cp.painter(), frameRect, Qt::NoPen, winUI3Color( subtleHighlightColor ) );
+                        drawRoundedRect( cp.painter(), frameRect, Qt::NoPen, winUI3Color( subtleHighlightColor ) );
                     }
 
                     const auto drawUpDown = [ & ]( QStyle::SubControl sc )
@@ -1169,8 +1149,9 @@ void FluentUI3Style::drawComplexControl( ComplexControl control,
                                              winUI3Color( subtleHighlightColor ) );
                         }
 
+                        bool horizonal = widget && widget->property("horizonalButtons").toBool();
                         auto _font = assetFont;
-                        _font.setPixelSize( 17 );
+                        _font.setPixelSize( horizonal ? 17 : 15 );
                         cp->setFont( _font );
                         cp->setPen( sb->palette.buttonText().color() );
                         cp->setBrush( Qt::NoBrush );
@@ -1364,7 +1345,7 @@ void FluentUI3Style::drawComplexControl( ComplexControl control,
         {
             if ( const QStyleOptionComboBox* combobox = qstyleoption_cast<const QStyleOptionComboBox*>( option ) )
             {
-                QRectF rect = option->rect;  //不再 shrink
+                QRectF rect = option->rect;  // 不再 shrink
 
                 const bool hasFocus = state & State_HasFocus;
 
@@ -1910,7 +1891,7 @@ void FluentUI3Style::drawPrimitive( PrimitiveElement element,
                 {
                     const auto frameRect = QRectF( option->rect ).marginsRemoved( QMarginsF( 1.5, 1.5, 1.5, 1.5 ) );
 
-                    auto inputFillBrush = [this]( const QStyleOption* option, const QWidget* widget ) -> QBrush
+                    auto inputFillBrush = [ this ]( const QStyleOption* option, const QWidget* widget ) -> QBrush
                     {
                         // slightly different states than in controlFillBrush
                         using namespace StyleOptionHelper;
@@ -2354,6 +2335,31 @@ QRect FluentUI3Style::subControlRect( ComplexControl control,
                 const QSize buttonSize( buttonHeight * 6 / 5, buttonHeight );
                 const int textFieldLength = spinbox->rect.width() - 2 * fw - 2 * buttonSize.width();
                 const QPoint topLeft( spinbox->rect.topLeft() + QPoint( fw, fw ) );
+
+                bool horizonal = widget && widget->property("horizonalButtons").toBool();
+                if ( !horizonal )
+                {
+                    QRect r       = spinbox->rect.marginsRemoved( QMargins( fw, fw, fw, fw ) );
+                    int btnHeight = qMin( r.height() / 2, spinbox->fontMetrics.height() );
+                    if (btnHeight == r.height() / 2)
+                        btnHeight -= 2;
+
+                    if ( subControl == SC_SpinBoxUp )
+                    {
+                        return QRect( QPoint( r.topRight().x() - buttonSize.width(), r.topRight().y() + fw * 2 ),
+                                      QSize( buttonSize.width(), btnHeight ) );
+                    }
+                    if ( subControl == SC_SpinBoxDown )
+                    {
+                        return QRect( QPoint( r.topRight().x() - buttonSize.width(), r.bottomRight().y() -  btnHeight - fw ),
+                                      QSize( buttonSize.width(), btnHeight ) );
+                    }
+                    if ( subControl == SC_SpinBoxEditField )
+                    {
+                        return r.marginsRemoved( QMargins( 0, 0, buttonSize.width(), 0 ) );
+                    }
+                }
+
                 switch ( subControl )
                 {
                     case SC_SpinBoxUp :
@@ -2370,7 +2376,7 @@ QRect FluentUI3Style::subControlRect( ComplexControl control,
                                      buttonSize.height() );
                         if ( subControl == SC_SpinBoxDown )
                         {
-                            ret.moveRight( ret.right() + buttonSize.width() );
+                            ret.moveRight( ret.right() + buttonSize.width() - 2 * fw );
                         }
                         break;
                     }
@@ -2629,10 +2635,10 @@ void FluentUI3Style::drawControl( ControlElement element,
             break;
         case CE_ToolButtonLabel :
 #if QT_CONFIG( toolbutton )
-#if QT_VERSION < QT_VERSION_CHECK( 6, 0, 0 )
+#    if QT_VERSION < QT_VERSION_CHECK( 6, 0, 0 )
             QProxyStyle::drawControl( element, option, painter, widget );
             break;
-#endif
+#    endif
             if ( const QStyleOptionToolButton* toolbutton = qstyleoption_cast<const QStyleOptionToolButton*>( option ) )
             {
                 QRect rect = toolbutton->rect;
@@ -2998,7 +3004,17 @@ void FluentUI3Style::drawControl( ControlElement element,
                 }
 
                 auto vTextRect = visualRect( btn->direction, btn->rect, textRect );
-                painter->setPen( controlTextColor( option ) );
+                bool accent    = widget && widget->property( "accent" ).toBool();
+                if ( accent )
+                {
+                    painter->setPen( WINUI3Colors[ colorSchemeIndex ][ textOnAccentPrimary ] );
+                }
+                else
+                {
+                    painter->setPen( controlTextColor( option ) );
+                }
+
+                // painter->setPen( controlTextColor( option, QPalette::ButtonText, widget ) );
                 proxy()->drawItemText( painter, vTextRect, tf, option->palette, isEnabled, btn->text );
             }
             break;
@@ -3025,7 +3041,17 @@ void FluentUI3Style::drawControl( ControlElement element,
                 }
                 else
                 {
-                    painter->setBrush( controlFillBrush( option, ControlType::Control ) );
+                    bool accent = widget && widget->property( "accent" ).toBool();
+                    if ( accent )
+                    {
+                        painter->setBrush( calculateAccentColor( option ) );
+                        painter->setPen( Qt::NoPen );
+                    }
+                    else
+                    {
+                        painter->setBrush( controlFillBrush( option, ControlType::Control ) );
+                    }
+
                     painter->drawRoundedRect( rect, secondLevelRoundingRadius, secondLevelRoundingRadius );
 
                     rect.adjust( 0.5, 0.5, -0.5, -0.5 );
@@ -3622,7 +3648,7 @@ void FluentUI3Style::drawControl( ControlElement element,
                     QString titleText = painter->fontMetrics().elidedText(
                         dwOpt->title, Qt::ElideRight, verticalTitleBar ? titleRect.height() : titleRect.width() );
                     const int indent = 4;
-                    painter->setPen(controlTextColor( option ));
+                    painter->setPen( controlTextColor( option ) );
                     drawItemText( painter,
                                   rect.adjusted( indent + 1, 1, -indent - 1, -1 ),
                                   Qt::AlignLeft | Qt::AlignVCenter | Qt::TextShowMnemonic,
@@ -3711,6 +3737,22 @@ void FluentUI3Style::polish( QWidget* widget )
     if ( !qobject_cast<QCommandLinkButton*>( widget ) )
 #endif  // QT_CONFIG(commandlinkbutton)
         QProxyStyle::polish( widget );
+
+    // 没有动态更新主题的需求，可屏蔽
+    if ( auto le = qobject_cast<QLineEdit*>( widget ) )
+    {
+        if ( !le->isClearButtonEnabled() )
+        {
+            return;
+        }
+
+        QToolButton* btn = le->findChild<QToolButton*>();
+        if ( btn )
+        {
+            QIcon icon = standardIcon( QStyle::SP_LineEditClearButton, nullptr, le );
+            btn->setIcon( icon );
+        }
+    }
 
     const bool isScrollBar  = qobject_cast<QScrollBar*>( widget );
     const bool isMenu       = qobject_cast<QMenu*>( widget );
@@ -3863,7 +3905,7 @@ QSize FluentUI3Style::sizeFromContents( ContentsType type,
             break;
 #endif  // QT_CONFIG(menu)
 #if QT_CONFIG( spinbox )
-        case QStyle::CT_SpinBox :
+        case CT_SpinBox :
         {
             if ( const auto* spinBoxOpt = qstyleoption_cast<const QStyleOptionSpinBox*>( option ) )
             {
@@ -3943,30 +3985,29 @@ QSize FluentUI3Style::sizeFromContents( ContentsType type,
             contentSize.rwidth() += 2 * contentHMargin - oldMargin;
             break;
         }
-        // or ui setHeight
-         case CT_ToolButton:
-         {
+            // or ui setHeight
+        case CT_ToolButton :
+        {
             contentSize = QProxyStyle::sizeFromContents( type, option, size, widget );
             break;
-         }
+        }
         case CT_ItemViewItem :
         {
-             if (auto view = qobject_cast<const QListView*>(widget))
-             {
-                 if (view->parentWidget() &&
-                     view->parentWidget()->parentWidget() &&
-                     qobject_cast<const QComboBox*>(view->parentWidget()->parentWidget()))
-                 {
-                     contentSize.setHeight(32);   // ComboBox dropdown item
-                     break;
-                 }
-             }
+            if ( auto view = qobject_cast<const QListView*>( widget ) )
+            {
+                if ( view->parentWidget() && view->parentWidget()->parentWidget()
+                     && qobject_cast<const QComboBox*>( view->parentWidget()->parentWidget() ) )
+                {
+                    contentSize.setHeight( 32 );  // ComboBox dropdown item
+                    break;
+                }
+            }
 
             // FluentUI 3 列表项标准常量
-            const int FLUENT_H_MARGIN            = 12;  // 水平边距（左右各12px）
+            const int FLUENT_H_MARGIN                             = 12;  // 水平边距（左右各12px）
             [[maybe_unused]] const int FLUENT_V_MARGIN            = 8;   // 常规模式垂直边距（上下各8px）
             [[maybe_unused]] const int FLUENT_V_MARGIN_COMPACT    = 4;   // 紧凑模式垂直边距
-            const int FLUENT_ITEM_HEIGHT         = 40;  // 常规列表项总高度
+            const int FLUENT_ITEM_HEIGHT                          = 40;  // 常规列表项总高度
             [[maybe_unused]] const int FLUENT_ITEM_HEIGHT_COMPACT = 32;  // 紧凑列表项总高度
 
             if ( const auto* viewItemOpt = qstyleoption_cast<const QStyleOptionViewItem*>( option ) )
@@ -3980,14 +4021,13 @@ QSize FluentUI3Style::sizeFromContents( ContentsType type,
                     contentSize.rwidth() += FLUENT_H_MARGIN;
                     contentSize.setHeight( FLUENT_ITEM_HEIGHT );
                 }
-                else if (auto view = qobject_cast<const QListView*>(widget))
+                else if ( auto view = qobject_cast<const QListView*>( widget ) )
                 {
-                    if (view->parentWidget() &&
-                        view->parentWidget()->parentWidget() &&
-                        qobject_cast<const QComboBox*>(view->parentWidget()->parentWidget()))
+                    if ( view->parentWidget() && view->parentWidget()->parentWidget()
+                         && qobject_cast<const QComboBox*>( view->parentWidget()->parentWidget() ) )
                     {
                         contentSize = QProxyStyle::sizeFromContents( type, option, size, widget );
-                        contentSize.setHeight(32);
+                        contentSize.setHeight( 32 );
                         return contentSize;
                     }
                 }
@@ -4010,15 +4050,15 @@ QSize FluentUI3Style::sizeFromContents( ContentsType type,
         case CT_ToolButton :
         case CT_CheckBox :
         case CT_RadioButton :
-        case CT_ComboBox:
-        case CT_LineEdit:
-        case CT_SpinBox:
+        case CT_ComboBox :
+        case CT_LineEdit :
+        case CT_SpinBox :
             if ( contentSize.height() < 31 )
             {
                 contentSize.setHeight( 31 );
             }
             break;
-        default:
+        default :
             break;
     }
 
@@ -4092,16 +4132,16 @@ int FluentUI3Style::pixelMetric( PixelMetric metric, const QStyleOption* option,
         case PM_DefaultFrameWidth :
         {
             res = 4;
-            if (qobject_cast<const QListView*>(widget))
+            if ( qobject_cast<const QListView*>( widget ) )
             {
                 res = 2;
             }
-            if (isComboBoxPopup( const_cast<QWidget*>( widget ) ))
+            if ( isComboBoxPopup( const_cast<QWidget*>( widget ) ) )
             {
                 res = 2;
             }
         }
-            break;
+        break;
         case PM_ButtonShiftHorizontal :
         case PM_ButtonShiftVertical :
             res = 0;
@@ -4151,7 +4191,8 @@ static void populateLightSystemBasePalette( QPalette& result )
     SET_IF_UNRESOLVED( QPalette::Active, QPalette::Text, textColor );
     SET_IF_UNRESOLVED( QPalette::Active, QPalette::BrightText, btnHighlight );
     SET_IF_UNRESOLVED( QPalette::Active, QPalette::Base, base );
-    SET_IF_UNRESOLVED( QPalette::Active, QPalette::Window, /*QColor( 0xF3, 0xF3, 0xF3, 0xFF )*/QColor(249,249,249));
+    SET_IF_UNRESOLVED(
+        QPalette::Active, QPalette::Window, /*QColor( 0xF3, 0xF3, 0xF3, 0xFF )*/ QColor( 249, 249, 249 ) );
     SET_IF_UNRESOLVED( QPalette::Active, QPalette::ButtonText, textColor );
     SET_IF_UNRESOLVED( QPalette::Active, QPalette::Midlight, btnColor.lighter( 125 ) );
     SET_IF_UNRESOLVED( QPalette::Active, QPalette::Shadow, Qt::black );
@@ -4168,7 +4209,8 @@ static void populateLightSystemBasePalette( QPalette& result )
     SET_IF_UNRESOLVED( QPalette::Inactive, QPalette::Text, textColor );
     SET_IF_UNRESOLVED( QPalette::Inactive, QPalette::BrightText, btnHighlight );
     SET_IF_UNRESOLVED( QPalette::Inactive, QPalette::Base, base );
-    SET_IF_UNRESOLVED( QPalette::Inactive, QPalette::Window, /*QColor( 0xF3, 0xF3, 0xF3, 0xFF )*/QColor(249,249,249));
+    SET_IF_UNRESOLVED(
+        QPalette::Inactive, QPalette::Window, /*QColor( 0xF3, 0xF3, 0xF3, 0xFF )*/ QColor( 249, 249, 249 ) );
     SET_IF_UNRESOLVED( QPalette::Inactive, QPalette::ButtonText, textColor );
     SET_IF_UNRESOLVED( QPalette::Inactive, QPalette::Midlight, btnColor.lighter( 125 ) );
     SET_IF_UNRESOLVED( QPalette::Inactive, QPalette::Shadow, Qt::black );
@@ -4202,7 +4244,7 @@ static void populateDarkSystemBasePalette( QPalette& result )
 void FluentUI3Style::polish( QPalette& result )
 {
     highContrastTheme = isHighContrastTheme();
-    colorSchemeIndex = getColorSchemeIndex();
+    colorSchemeIndex  = getColorSchemeIndex();
 
     if ( !highContrastTheme && colorSchemeIndex == 0 )
     {
@@ -4222,9 +4264,7 @@ void FluentUI3Style::polish( QPalette& result )
 #if QT_VERSION >= QT_VERSION_CHECK( 6, 6, 0 )
     SET_IF_UNRESOLVED( QPalette::Inactive, QPalette::Accent, result.accent().color() );
 #else
-    SET_IF_UNRESOLVED( QPalette::Inactive,
-                       QPalette::Highlight,
-                       result.color( QPalette::Highlight ) );
+    SET_IF_UNRESOLVED( QPalette::Inactive, QPalette::Highlight, result.color( QPalette::Highlight ) );
 #endif
 
     SET_IF_UNRESOLVED( QPalette::Inactive, QPalette::Highlight, result.highlight().color() );
@@ -4259,13 +4299,18 @@ void FluentUI3Style::unpolish( QWidget* widget )
 QIcon FluentUI3Style::standardIcon( StandardPixmap sp, const QStyleOption* option, const QWidget* widget ) const
 {
     // if (sp == SP_TitleBarCloseButton) { return makeFluentIcon(QChar(0xE8BB)); }
+    if ( sp == SP_LineEditClearButton )
+    {
+        QIcon icon = makeFluentIcon( QChar( 0xE894 ) );
+        return icon;
+    }
 
     return QProxyStyle::standardIcon( sp, option, widget );
 }
 
 void FluentUI3Style::drawCheckBox( const QStyleOption* option, QPainter* painter, const QWidget* widget ) const
 {
-    Q_UNUSED(widget)
+    Q_UNUSED( widget )
 
     painter->save();
     painter->setRenderHint( QPainter::Antialiasing );
@@ -4326,6 +4371,14 @@ QPen FluentUI3Style::borderPenControlAlt( const QStyleOption* option ) const
     return winUI3Color( frameColorStrong );
 }
 
+QColor blend( const QColor& fg, const QColor& bg, double alpha )
+{
+    return QColor( int( bg.red() + ( fg.red() - bg.red() ) * alpha ),
+                   int( bg.green() + ( fg.green() - bg.green() ) * alpha ),
+                   int( bg.blue() + ( fg.blue() - bg.blue() ) * alpha ),
+                   fg.alpha() );
+}
+
 QColor FluentUI3Style::calculateAccentColor( const QStyleOption* option ) const
 {
     using namespace StyleOptionHelper;
@@ -4340,14 +4393,10 @@ QColor FluentUI3Style::calculateAccentColor( const QStyleOption* option ) const
     const auto alpha      = winUI3Color( alphaColor );
 
 #if QT_VERSION >= QT_VERSION_CHECK( 6, 6, 0 )
-    QColor col = option->palette.accent().color();
+    // accent 在 inactive 窗口下可能退化成灰色
+    QColor col = /*option->palette.accent().color()*/ option->palette.color( QPalette::Active, QPalette::Accent );
 #else
     QColor col = option->palette.color( QPalette::Highlight );
-#endif
-
-#if QT_VERSION < QT_VERSION_CHECK( 6, 10, 0 )
-    // Qt 6.6.x 及更早版本：accent 在 inactive 窗口下可能退化成灰色
-    col = QColor( 0x00, 0x78, 0xD7 );
 #endif
     col.setAlpha( alpha.alpha() );
     return col;
@@ -4356,27 +4405,31 @@ QColor FluentUI3Style::calculateAccentColor( const QStyleOption* option ) const
 QBrush FluentUI3Style::controlFillBrush( const QStyleOption* option, ControlType controlType ) const
 {
     using namespace StyleOptionHelper;
-    static constexpr WINUI3Color colorEnums[2][4] = {
-                                                     // Light & Dark Control
-                                                     { fillControlDefault, fillControlSecondary,
-                                                      fillControlTertiary, fillControlDisabled },
-                                                     // Light & Dark Control Alt
-                                                     { fillControlAltSecondary, fillControlAltTertiary,
-                                                      fillControlAltQuarternary, fillControlAltDisabled },
-                                                     };
+    static constexpr WINUI3Color colorEnums[ 2 ][ 4 ] = {
+        // Light & Dark Control
+        { fillControlDefault,      fillControlSecondary,   fillControlTertiary,       fillControlDisabled    },
+        // Light & Dark Control Alt
+        { fillControlAltSecondary, fillControlAltTertiary, fillControlAltQuarternary, fillControlAltDisabled },
+    };
 
-    if (option->palette.isBrushSet(QPalette::Current, QPalette::Button))
+    if ( option->palette.isBrushSet( QPalette::Current, QPalette::Button ) )
+    {
         return option->palette.button();
+    }
 
-    if (!isChecked(option) && isAutoRaise(option))
+    if ( !isChecked( option ) && isAutoRaise( option ) )
+    {
         return Qt::NoBrush;
+    }
 
     // checked is the same for Control (Buttons) and Control Alt (Radiobuttons/Checkboxes)
-    if (isChecked(option))
-        return calculateAccentColor(option);
+    if ( isChecked( option ) )
+    {
+        return calculateAccentColor( option );
+    }
 
-    const auto state = calcControlState(option);
-    return winUI3Color(colorEnums[int(controlType)][int(state)]);
+    const auto state = calcControlState( option );
+    return winUI3Color( colorEnums[ int( controlType ) ][ int( state ) ] );
 }
 
 QColor FluentUI3Style::controlTextColor( const QStyleOption* option, QPalette::ColorRole role ) const
@@ -4499,7 +4552,25 @@ void FluentUI3Style::drawLineEditFrame( QPainter* p, const QRectF& rect, const Q
     }
 }
 
-QColor FluentUI3Style::winUI3Color(WINUI3Color col) const
+QColor FluentUI3Style::winUI3Color( WINUI3Color col ) const
 {
-    return WINUI3Colors[colorSchemeIndex][col];
+    return WINUI3Colors[ colorSchemeIndex ][ col ];
+}
+
+QIcon FluentUI3Style::makeFluentIcon( const QChar& ch ) const
+{
+    QFont f( assetFont );
+    f.setPointSize( 15 );
+
+    QPixmap pix( 20, 20 );
+    pix.fill( Qt::transparent );
+
+    QPainter p( &pix );
+    p.setRenderHints( QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform );
+
+    p.setFont( f );
+    p.setPen( winUI3Color( textPrimary ) );
+    p.drawText( pix.rect(), Qt::AlignCenter, ch );
+
+    return QIcon( pix );
 }

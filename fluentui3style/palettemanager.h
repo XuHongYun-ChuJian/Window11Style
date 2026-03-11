@@ -3,6 +3,10 @@
 #include <QPalette>
 #include <QObject>
 
+#if QT_VERSION < QT_VERSION_CHECK(6,6,0)
+#define QPalette_Accent QPalette::NColorRoles + 1
+#endif
+
 class PaletteManager: public QObject
 {
     Q_OBJECT

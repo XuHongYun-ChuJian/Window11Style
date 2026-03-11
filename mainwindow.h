@@ -16,6 +16,10 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private slots:
+    // void on_horizonalBtn_clicked();
+    // void on_verticalBtn_clicked();
+
 private:
     void init();
     void initMenuAndToolBar();
